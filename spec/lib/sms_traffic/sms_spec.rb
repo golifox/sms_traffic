@@ -97,6 +97,7 @@ RSpec.describe SmsTraffic::Sms do
 
       it { expect(deliver).to be_falsey }
       it { expect(delivered.errors).to include(response.error_description) }
+      it { expect(delivered.response).to eq(response) }
     end
 
     context 'when sms traffic respond with error' do
@@ -112,6 +113,7 @@ RSpec.describe SmsTraffic::Sms do
 
       it { expect(deliver).to be_falsey }
       it { expect(delivered.errors).to include(reply.error_description) }
+      it { expect(delivered.response.reply.error_description).to eq(reply.error_description) }
     end
 
     context 'when sms traffic respond with success' do
@@ -126,6 +128,7 @@ RSpec.describe SmsTraffic::Sms do
       it { expect(deliver).to be_truthy }
       it { expect(delivered.status).to eq('sent') }
       it { expect(delivered.id).to eq(reply.sms_id) }
+      it { expect(delivered.response.success?).to be_truthy }
     end
 
     context 'when sms traffic respond with success but sms not sent' do
@@ -141,6 +144,7 @@ RSpec.describe SmsTraffic::Sms do
 
       it { expect(deliver).to be_falsey }
       it { expect(sms.errors).to include('Sms has been not enqueued') }
+      it { expect(delivered.response.success?).to be_truthy }
     end
   end
 

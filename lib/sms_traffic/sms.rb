@@ -1,12 +1,13 @@
 module SmsTraffic
   class Sms
     attr_accessor :phone, :message, :originator
-    attr_reader :id, :status, :errors
+    attr_reader :id, :status, :errors, :response
 
     def initialize(phone, message, originator: nil)
       @phone      = phone
       @message    = message
       @originator = originator || SmsTraffic.configuration.originator
+      @response   = nil
       @status     = 'not-sent'
       @errors     = []
       validate!
@@ -14,15 +15,15 @@ module SmsTraffic
 
     def deliver # rubocop:disable Metrics/MethodLength
       # @type [Client::Response]
-      response = Client.deliver(phone, message, originator)
+      @response = Client.deliver(phone, message, originator)
 
-      unless response.success?
-        @errors << response.error_description
+      unless @response.success?
+        @errors << @response.error_description
         return false
       end
 
       # @type [Client::Response::Reply]
-      reply = response.reply
+      reply = @response.reply
 
       if reply.ok?
         @status = 'sent'
@@ -45,7 +46,7 @@ module SmsTraffic
 
     private
 
-    def validate! # rubocop:disable Metrics/ AbcSize
+    def validate! # rubocop:disable Metrics/AbcSize
       raise ArgumentError, "Phone should be assigned to #{self.class}." if phone.nil?
 
       if SmsTraffic.configuration.validate_phone && phone.to_s !~ /^[0-9]{11,}$/
